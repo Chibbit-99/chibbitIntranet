@@ -5,14 +5,20 @@ const server = http.createServer();
 
 const wss = new WebSocket.Server({ server });
 
+function sendMessage(message, ws){
+  ws.send(message);
+  console.log("Sent:", message);
+}
+
 wss.on("connection", (ws) => {
   ws.on("message", (msg) => {
     const text = msg.toString();
+    console.log("Received:", text);
 
     if (text === "ping") {
-      ws.send("pong");
+      sendMessage("pong",ws);
     } else {
-      ws.send("unknown");
+      sendMessage("unknown",ws);
     }
   });
 });
