@@ -26,8 +26,8 @@ const server = http.createServer((req, res) => {
   </style>
 </head>
 <body>
-  <h1>✅ WebSocket Server is Running</h1>
-  <p>Open your browser console (F12) and run:</p>
+  <h1>Chibbit Intranet Server is Running</h1>
+  <p>Open your browser console (F12 or Ctrl+Shift+I) and run:</p>
 
   <pre>
 const ws = new WebSocket("wss://${req.headers.host}");
