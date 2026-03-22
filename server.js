@@ -1,82 +1,50 @@
 const http = require("http");
+const fs = require("fs");
+const path = require("path");
 const WebSocket = require("ws");
 
+// Minimal HTTP response (so Render doesn't 502)
 const server = http.createServer((req, res) => {
-  // Return a simple HTML page with instructions
-  res.writeHead(200, { "Content-Type": "text/html" });
-
-  res.end(`
-<!DOCTYPE html>
-<html>
-<head>
-  <title>WebSocket Server</title>
-  <style>
-    body {
-      font-family: monospace;
-      background: #0f172a;
-      color: #e2e8f0;
-      padding: 40px;
-    }
-    pre {
-      background: #020617;
-      padding: 15px;
-      border-radius: 10px;
-      overflow-x: auto;
-    }
-  </style>
-</head>
-<body>
-  <h1>Chibbit Intranet Server is Running</h1>
-  <p>Open your browser console (F12 or Ctrl+Shift+I) and run:</p>
-
-  <pre>
-const ws = new WebSocket("wss://${req.headers.host}");
-
-ws.onopen = () => {
-  console.log("Connected!");
-  ws.send("ping");
-};
-
-ws.onmessage = (e) => {
-  console.log("Server:", e.data);
-};
-  </pre>
-
-  <p>Expected output:</p>
-  <pre>
-Connected!
-Server: pong
-  </pre>
-</body>
-</html>
-  `);
+  res.writeHead(200);
+  res.end("Use WebSocket to request files");
 });
 
 const wss = new WebSocket.Server({ server });
-
-function sendMessage(message, ws) {
-  if (ws.readyState === WebSocket.OPEN) {
-    ws.send(message);
-    console.log("Sent:", message);
-  }
-}
 
 wss.on("connection", (ws) => {
   console.log("Client connected");
 
   ws.on("message", (msg) => {
     const text = msg.toString();
-    console.log("Received:", text);
+    console.log("Request:", text);
 
-    if (text === "ping") {
-      sendMessage("pong", ws);
+    // Expect: GET filename
+    if (text.startsWith("GET ")) {
+      const fileName = text.slice(4).trim();
+
+      const filePath = path.join(__dirname, "public", fileName);
+
+      fs.readFile(filePath, "utf8", (err, data) => {
+        if (err) {
+          ws.send(JSON.stringify({
+            type: "error",
+            message: "File not found"
+          }));
+        } else {
+          ws.send(JSON.stringify({
+            type: "file",
+            name: fileName,
+            content: data
+          }));
+        }
+      });
+
     } else {
-      sendMessage("unknown", ws);
+      ws.send(JSON.stringify({
+        type: "error",
+        message: "Invalid request"
+      }));
     }
-  });
-
-  ws.on("close", () => {
-    console.log("Client disconnected");
   });
 });
 
