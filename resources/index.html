@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chibbit Intranet</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Welcome to Chibbit Intranet</h1>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Files</a></li>
+                <li><a href="#">About</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section class="welcome">
+            <h2>Hello, user!</h2>
+            <p>Use the navigation above to access files and resources on the Chibbit Intranet.</p>
+        </section>
+
+        <section class="actions">
+            <button id="refreshBtn">Refresh Files</button>
+        </section>
+
+        <section id="filesList">
+            <h3>Available Files:</h3>
+            <ul id="fileItems">
+                <!-- File items will be populated via script.js -->
+            </ul>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Chibbit Intranet</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
