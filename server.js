@@ -3,13 +3,16 @@ const fs = require("fs");
 const path = require("path");
 const WebSocket = require("ws");
 
-// Minimal HTTP response (so Render doesn't 502)
+// Minimal HTTP response (prevents 502 on Render)
 const server = http.createServer((req, res) => {
   res.writeHead(200);
-  res.end("Use WebSocket to request files");
+  res.end("Use WebSocket to request files from /resources");
 });
 
 const wss = new WebSocket.Server({ server });
+
+// Absolute path to resources folder
+const resourcesDir = path.join(__dirname, "resources");
 
 wss.on("connection", (ws) => {
   console.log("Client connected");
@@ -18,11 +21,23 @@ wss.on("connection", (ws) => {
     const text = msg.toString();
     console.log("Request:", text);
 
-    // Expect: GET filename
     if (text.startsWith("GET ")) {
       const fileName = text.slice(4).trim();
 
-      const filePath = path.join(__dirname, "public", fileName);
+      // Normalize to prevent weird paths
+      const safePath = path.normalize(fileName).replace(/^(\.\.(\/|\\|$))+/, "");
+
+      // Force everything inside /resources
+      const filePath = path.join(resourcesDir, safePath);
+
+      // Extra safety check (never allow escape)
+      if (!filePath.startsWith(resourcesDir)) {
+        ws.send(JSON.stringify({
+          type: "error",
+          message: "Access denied"
+        }));
+        return;
+      }
 
       fs.readFile(filePath, "utf8", (err, data) => {
         if (err) {
@@ -45,6 +60,10 @@ wss.on("connection", (ws) => {
         message: "Invalid request"
       }));
     }
+  });
+
+  ws.on("close", () => {
+    console.log("Client disconnected");
   });
 });
 
